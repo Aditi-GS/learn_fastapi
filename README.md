@@ -1,4 +1,5 @@
 # learn_fastapi
+### Note: Each Heading is also a git tag name. (e.g: Part-1)
 ## Part 1
 1. venv: virtual environments 
     - version control over different libraries
@@ -109,3 +110,60 @@ Example:
 
 Without `,` i.e., `vars=(id)`, in python `(number)` is treated as an integer. But `vars` argument
 only takes `tuples` as input. Adding a comma when a single value has to passed, makes it a tuple.
+
+## Part 3
+
+1. ORM = Object Relational Mappers
+- Abstraction between us and DB
+- Still can't talk to DB directly -> instead interacts with DB driver (e.g psycopg2)
+- Can create tables, queries via Python directly (no need of SQL and tables existence)
+
+2. SQLModel in FastAPI = SQLAlchemy (ORM) + Pydantic
+
+3. DROP Table = Deletes the entire table => the records/rows + the structure/schema
+   TRUNCATE Table = Deletes only the data => the records/rows BUT retains the structure/schema
+
+4. Default port for postgres = 5432
+
+5. ** before a pydantic_model.model_dump() = unpacks the values in the pydantic-model-converted-dictonary
+
+6. If you update a column or create a new one in your table definition, even with `uvicorn --reload`, the column won't be reflected in the DB. This is because `uvicorn` command only reloads the server code/FastAPI application instance but not the DB (since it doesn't interact with it directly, but instead via ORM)
+
+So how come the table was created at the start ?
+
+```python
+models.Base.metadata.create_all(bind=engine)
+```
+
+The `create_all()` function is the one that creates the table the first time.
+This only creates tables if it doesn't exist. If it does, then it does nothing.
+So, if the table properties are updated, then it won't reflect after `--reload`
+
+7. `id = Column(type_=Integer, primary_key=True, nullable=False)` why `id` auto-increments even though I didn't specify ?
+
+When a field is `Integer + PK`, SQLAlchemy automatically configures this as an auto-incrementing sequence in PostgreSQL.
+So internally:
+    `id SERIAL PRIMARY KEY` == `id INTEGER NOT NULL DEFAULT nextval('posts_id_seq')`
+
+8. If there are extra fields that are passed in the body, which are not included in the Pydantic Schema, those fields are ignored/silently dropped without raising any errors coz `extra = "ignore"` is the default behavior.
+To avoid this, add `model_config = ConfigDict(extra="forbid")`, which will throw: 
+
+`422 Unprocessable Content`
+```json
+{
+    "detail": [
+        {
+            "type": "extra_forbidden",
+            "loc": [
+                "body",
+                "<field_name>"
+            ],
+            "msg": "Extra inputs are not permitted",
+            "input": 1
+        }
+    ]
+}
+```
+
+9. Pydantic Models = Schema Models (Contracts -> Structuring + Config of Data to recieve and/or send)
+   SQLAlchemy Models = Table Definitions
