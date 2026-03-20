@@ -167,3 +167,12 @@ To avoid this, add `model_config = ConfigDict(extra="forbid")`, which will throw
 
 9. Pydantic Models = Schema Models (Contracts -> Structuring + Config of Data to recieve and/or send)
    SQLAlchemy Models = Table Definitions
+
+## Part 4
+
+1. Hashing Passwords
+2. FastAPI routers (with prefix) = modular
+3. Organized look in OpenAPI Spec file using `tags`
+#### Authentication : 
+4. JWT = JSON Web Tokens <=> Headers (algo + token type) + Token Data (Payload) + SECRET == Signature
+5. OAuth2PasswordRequestForm will always have 2 specific fields only = `username` and `password`
