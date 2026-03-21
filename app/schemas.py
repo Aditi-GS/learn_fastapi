@@ -1,6 +1,36 @@
 from pydantic import BaseModel, ConfigDict, EmailStr
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
+
+class TokenData(BaseModel):
+    user_id: int
+class _UserCredentials(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserCreate(_UserCredentials):
+    pass    
+
+class User(BaseModel):
+    id: int
+    email: EmailStr
+    password: str
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class UserResponse(BaseModel):
+    id: int
+    email: EmailStr
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+class _PostUserResponse(BaseModel):
+    id: int
+    email: EmailStr
 
 class _PostBase(BaseModel):
     title: str
@@ -21,31 +51,14 @@ class PostResponse(_PostBase):
     id: int
     rating: Optional[int] = None
     created_at: datetime
-    model_config = ConfigDict(from_attributes=True)     # == orm_mode = True    
-
-class UserCredentials(BaseModel):
-    email: EmailStr
-    password: str
-
-class UserCreate(UserCredentials):
-    pass    
-
-class UserResponse(BaseModel):
-    id: int
-    email: EmailStr
-    created_at: datetime
-    model_config = ConfigDict(from_attributes=True)
-
-class User(BaseModel):
-    id: int
-    email: EmailStr
-    password: str
-    created_at: datetime
-    model_config = ConfigDict(from_attributes=True)
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str = "bearer"
-
-class TokenData(BaseModel):
     user_id: int
+    user: _PostUserResponse
+    model_config = ConfigDict(from_attributes=True)     # == orm_mode = True + Pydantic can read SQLAlchemy objects
+
+class _PostOverview(BaseModel):
+    id: int
+    title: str
+    model_config = ConfigDict(from_attributes=True)
+
+class UserPostsResponse(UserResponse):
+    posts: List[_PostOverview]

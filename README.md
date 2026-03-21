@@ -176,3 +176,34 @@ To avoid this, add `model_config = ConfigDict(extra="forbid")`, which will throw
 #### Authentication : 
 4. JWT = JSON Web Tokens <=> Headers (algo + token type) + Token Data (Payload) + SECRET == Signature
 5. OAuth2PasswordRequestForm will always have 2 specific fields only = `username` and `password`
+
+## Part 5
+
+1. Foreign Keys (Constraints)
+2. Check FK before CRUD + Handle FK violation
+3. Relationships only exist on SQLAlchemy ORM side => they are not enforced in DB in anyway 
+(i.e, no columns/constraints are created - depicting the relationship that we define)
+4. `relationship()` tells SQLAlchemy :
+    - the related objects to load
+    - navigate between linked models
+5. `back_populates` attribute in `relationship()` explicity defines what model/table you are linking the attribute to.
+The value of it is the name of the relationship in the other model.
+
+Example: 
+```python
+class Post(Base):
+    ...
+    user = relationship("User", back_populates="posts")
+    # means that on the other model ("User"), this relationship is called "posts"
+class User(Base):
+    ...
+    posts = relationship("Post", back_populates="user")     
+    # means that on the other model ("Post"), this relationship is called "user"
+```
+When `back_populates` is declared on both sides => keeps both the linked models in sync
+
+6. SQLAlchemy loads the related objects based on the FK defined - it is not necessary to mention which FK to use in order to load the related objects, UNLESS, there are multiple FKs defined => It infers the join condition from the FK.
+
+7. Query Params, Pagination, Keyword Based Search
+
+8. Sensitive info in .env
