@@ -10,7 +10,6 @@ class Post(Base):
     title = Column(type_=String, nullable=False)
     content = Column(type_=String, nullable=False)
     published = Column(type_=Boolean, nullable=False, server_default='TRUE')
-    rating = Column(type_=Integer, nullable=True)
     created_at = Column(type_=TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))
     user_id = Column(Integer, ForeignKey(column="users.id", name="fk_posts_users", ondelete="CASCADE"), nullable=False)
 
@@ -26,4 +25,10 @@ class User(Base):
     created_at = Column(type_=TIMESTAMP(timezone=True), nullable=False, server_default=text('now()'))    
 
     # One-To-Many
-    posts = relationship("Post", back_populates="user")     
+    posts = relationship("Post", back_populates="user") 
+
+class Vote(Base):
+    __tablename__ = "votes"
+
+    user_id = Column(Integer, ForeignKey(column="users.id", name="fk_votes_users", ondelete="CASCADE"), primary_key=True)
+    post_id = Column(Integer, ForeignKey(column="posts.id", name="fk_votes_posts", ondelete="CASCADE"), primary_key=True)

@@ -1,5 +1,5 @@
-from pydantic import BaseModel, ConfigDict, EmailStr
-from typing import Optional, List
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from typing import Optional, List, Annotated
 from datetime import datetime
 
 class Token(BaseModel):
@@ -41,19 +41,22 @@ class _PostRequestBase(_PostBase):
     model_config = ConfigDict(extra="forbid")   # can't pass id and created_at => generated at run time
 
 class PostCreate(_PostRequestBase):
-    rating: Optional[int] = None
+    pass
 
-# can't update rating
 class PostUpdate(_PostRequestBase):
     pass
 
 class PostResponse(_PostBase):
     id: int
-    rating: Optional[int] = None
     created_at: datetime
     user_id: int
     user: _PostUserResponse
     model_config = ConfigDict(from_attributes=True)     # == orm_mode = True + Pydantic can read SQLAlchemy objects
+
+class PostWithVotesResponse(BaseModel):
+    Post: PostResponse
+    votes: int
+    model_config = ConfigDict(from_attributes=True)
 
 class _PostOverview(BaseModel):
     id: int
@@ -62,3 +65,7 @@ class _PostOverview(BaseModel):
 
 class UserPostsResponse(UserResponse):
     posts: List[_PostOverview]
+
+class Vote(BaseModel):
+    post_id: int
+    dir: Annotated[int, Field(strict=True, le=1)]
