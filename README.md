@@ -6,6 +6,7 @@
 4. [Routers + Auth](#part-4)
 5. [FK + Relationship + Env](#part-5)
 6. [Votes + Join + Aggregate](#part-6)
+7. [DB Migrations](#part-7)
 
 ### Note: Each Heading is also a git tag name. (e.g: Part-1)
 
@@ -351,3 +352,45 @@ Example:
 ```sql
 SELECT * FROM users WHERE users.id IN (<user_id_1>, <user_id_2>, ..., <user_id_N>);
 ```
+
+## Part 7
+1. Database Migration Tools for DB ~ Git for DEV
+2. Incrementally track changes to DB schemas and rollback to a certain state anytime
+3. Alembic maintains a version table in your database that keeps track of all applied revisions
+```sql
+SELECT * FROM alembic_version
+ORDER BY version_num ASC;
+```
+If it’s empty -> Alembic thinks no migrations have been applied
+If it has a hash -> Alembic thinks that version is applied, and upgrade head will only apply newer migrations
+4. Migrations are just Python instructions → converted into SQL
+5. Alembic modes: 
+- `Online Mode`
+Connects to DB -> Executes Migrations on DB
+- `Offline Mode`
+Doesn't connect (No Engine & No DB Connection)-> Generates SQL migration scripts + SQLAlchemy Dialect (e.g: Postgres) + Metadata
+6. At low-level, for example, when we run `alembic upgrade head`, the alembic/env.py: 
+- Loads config (reads `alembic.ini`)
+- Injects DB URL
+- Builds SQLAlchemy engine
+- Opens DB connection
+- Loads migration scripts
+- Executes Python migration code
+- Converts it into SQL
+- Sends SQL to DB (online mode)
+7. To Autogenerate Migration:
+```console
+alembic revision —autogenerate -m <Description of changes>
+```
+To Generate Migration Manually:
+```console
+alembic revision -m <Description of changes>
+```
+8. Auto-generated Migration: Useful for simple changes like adding columns or tables, where Alembic can infer the       changes from SQLAlchemy models.
+
+    Manual Migration: Ideal for complex changes (e.g., creating constraints, triggers, or indexes) that require more control over the SQL commands.
+9. Alembic fails on existing tables intentionally — because it assumes your database and migration history must stay perfectly in sync.
+10. `alembic stamp head` = ‘stamp’ the revision table with the given revision; don’t run any migrations.
+11. Let us assume your DB is empty (no tables for app + no alembic_version table). Now if we run `alembic upgrade head`, alembic starts a transaction (DDL) and runs all the migrations from the start, step-by-step. On the event of failure at any migration, PostgreSQL rollbacks the entire transaction - so even if it only failed at the last migration, all the previously created tables will be rollbacked as well, including the alembic_version table.
+So if we try to check the DB for tables for debugging, we won't find anything.
+In such case, best way to debug would be to upgrade each migration explicitly.
