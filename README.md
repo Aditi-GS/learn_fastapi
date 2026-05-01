@@ -393,4 +393,53 @@ alembic revision -m <Description of changes>
 10. `alembic stamp head` = ‘stamp’ the revision table with the given revision; don’t run any migrations.
 11. Let us assume your DB is empty (no tables for app + no alembic_version table). Now if we run `alembic upgrade head`, alembic starts a transaction (DDL) and runs all the migrations from the start, step-by-step. On the event of failure at any migration, PostgreSQL rollbacks the entire transaction - so even if it only failed at the last migration, all the previously created tables will be rollbacked as well, including the alembic_version table.
 So if we try to check the DB for tables for debugging, we won't find anything.
-In such case, best way to debug would be to upgrade each migration explicitly.
+In such case, best way to debug would be to upgrade each migration explicitly.  
+
+## Part 8  
+
+1. `Cross-Origin Resource Sharing (CORS)` is an HTTP-header based mechanism that allows a server to indicate any origins (domain, scheme, or port) other than its own from which a browser should permit loading resources.  
+
+- CORS enables web browsers to request resources from a server on a different domain, which is not allowed by default.  
+
+2. CORS also relies on a mechanism by which browsers make a "preflight" request to the server hosting the cross-origin resource, in order to check that the server will permit the actual request. In that preflight, the browser sends headers that indicate the HTTP method and headers that will be used in the actual request.  
+
+- `Preflight Requests` are any **OPTIONS** request with `Origin` and `Access-Control-Request-Method` headers  
+
+3. An `Origin` is a combination of **protocol** (http, https), **domain** (myapp.com, localhost, localhost.try.com) and **port** (80, 8080, 443).  
+For example, all these are different origins:  
+
+- `http://localhost`  
+- `https://localhost`  
+- `https://localhost:8000`  
+
+4. Wildcards:  
+
+- It's possible to the list of allowed origins as `*` to say that all are allowed  
+
+5. FastAPI's `CORSMiddleware` function intercepts each request, ensuring that only the specified origins are permitted. We can also specify:  
+
+- Credentials (Authorization headers, Cookies, etc)  
+- Specific HTTP methods (POST, PUT) or all of them with the wildcard "*"  
+- Specific HTTP headers or all of them with the wildcard "*"  
+
+6. None of `allow_origins`, `allow_methods` and `allow_headers` can be set to ['*'] if `allow_credentials` is set to True. All of them must be explicitly specified.  
+
+7. The arguments supported by `CORSMiddleware` are:  
+
+- `allow_origins` - A list of origins that should be permitted to make cross-origin requests.  
+Use ['*'] to allow any origin.  
+- `allow_origin_regex` - A regex string to match against origins that should be permitted to make cross-origin requests.  
+- `allow_methods` - A list of HTTP methods that should be allowed for cross-origin requests.  Defaults to ['GET']. Use ['*'] to allow all standard methods.  
+- `allow_headers` - A list of HTTP request headers that should be supported for cross-origin requests.  
+Defaults to [].  
+Use ['*'] to allow all headers.  
+The Accept, Accept-Language, Content-Language and Content-Type headers are always allowed for simple CORS requests.  
+- `allow_credentials` - Indicate that cookies should be supported for cross-origin requests.      Defaults to False.  
+- `expose_headers` - Indicate any response headers that should be made accessible to the browser.  
+Defaults to [].  
+- `max_age` - Sets a maximum time in seconds for browsers to cache CORS responses.  
+Defaults to 600.  
+
+8. `pip freeze > requirements.txt`  
+
+
